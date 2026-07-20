@@ -6,22 +6,16 @@ body {
     margin: 0;
     min-height: 100vh;
 
-    /* The Magic: Seamless, deeply blended soft purple & indigo gradient */
-    background: linear-gradient(-45deg,
-            #090914,
-            /* Deep dark slate */
-            #23154d,
-            /* Rich visible purple */
-            #111636,
-            /* Soft midnight indigo */
-            #311652
-            /* Deep violet */
-        );
-    background-size: 400% 400%;
-    /* Made larger so the movement is completely seamless */
+    /* Deep rich eye-friendly purple and slate gradient */
+    background: linear-gradient(135deg,
+            #070914 0%,
+            #1c1036 40%,
+            #0b0f1d 80%,
+            #180b2b 100%);
+    background-size: 300% 300%;
 
-    /* Sped up to 15s so the flowing effect is beautifully visible without being distracting */
-    animation: subtleBreathing 15s ease-in-out infinite alternate;
+    /* Calming slow breathing animation */
+    animation: eyeFriendlyAurora 25s ease-in-out infinite alternate;
 
     /* Applying the premium font family globally */
     font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
@@ -31,28 +25,30 @@ body {
     scroll-behavior: smooth;
 }
 
-/* Keyframes for the ultra-smooth flowing gradient movement */
-@keyframes subtleBreathing {
+/* Keyframes for the soft background movement */
+@keyframes eyeFriendlyAurora {
     0% {
-        background-position: 0% 50%;
+        background-position: 0% 0%;
     }
 
     50% {
-        background-position: 100% 50%;
+        background-position: 50% 100%;
     }
 
     100% {
-        background-position: 0% 50%;
+        background-position: 100% 0%;
     }
 }
 
-/* Ultra-Premium Soft Glassmorphism Effect */
+/* Crystal clear high-contrast glassmorphism for cards */
 .glass-effect {
-    background: rgba(15, 20, 35, 0.4);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.03), 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.326);
+    /* Solid, rich dark backing so items stand out instantly */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(129, 141, 248, 0.313);
+    /* Clear, visible soft indigo border for perfect separation */
+    box-shadow: 0 20px 40px -15px rgb(0, 0, 0);
 }
 
 /* Removing default basic arrows from select dropdowns globally */
@@ -73,13 +69,13 @@ select {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(99, 102, 241, 0.4);
     border-radius: 20px;
     transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(139, 92, 246, 0.5);
+    background: rgba(139, 92, 246, 0.7);
 }
 
 /* Smooth focus transitions for all interactive elements */
