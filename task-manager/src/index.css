@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* Global Reset and Body Styling */
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    /* Deep rich eye-friendly purple and slate gradient */
+    background: linear-gradient(135deg,
+            #070914 0%,
+            #1c1036 40%,
+            #0b0f1d 80%,
+            #180b2b 100%);
+    background-size: 300% 300%;
+
+    /* Calming slow breathing animation */
+    animation: eyeFriendlyAurora 25s ease-in-out infinite alternate;
+
+    /* Applying the premium font family globally */
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    color: #f8fafc;
+
+    /* Smooth scrolling for the entire application */
+    scroll-behavior: smooth;
+}
+
+/* Keyframes for the soft background movement */
+@keyframes eyeFriendlyAurora {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 50% 100%;
+    }
+
+    100% {
+        background-position: 100% 0%;
+    }
+}
+
+/* Crystal clear high-contrast glassmorphism for cards */
+.glass-effect {
+    background: rgba(0, 0, 0, 0.326);
+    /* Solid, rich dark backing so items stand out instantly */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(129, 141, 248, 0.313);
+    /* Clear, visible soft indigo border for perfect separation */
+    box-shadow: 0 20px 40px -15px rgb(0, 0, 0);
+}
+
+/* Removing default basic arrows from select dropdowns globally */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Custom Premium Scrollbar Design */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.4);
+    border-radius: 20px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.7);
+}
+
+/* Smooth focus transitions for all interactive elements */
+input,
+textarea,
+select,
+button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
