@@ -1,12 +1,57 @@
-import React, { useState } from 'react';
-// Imported consistent premium icons across the app
-import { FiEdit2, FiTrash2, FiCheck, FiClock, FiSave, FiX, FiAlertCircle, FiType, FiCalendar, FiAlignLeft, FiFlag, FiChevronDown } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+// Imported consistent premium icons across the app (Added FiActivity for Status)
+import { FiEdit2, FiTrash2, FiCheck, FiClock, FiSave, FiX, FiAlertCircle, FiType, FiCalendar, FiAlignLeft, FiFlag, FiChevronDown, FiActivity } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
     // Managing component states
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState(task);
+
+    // New states for real-time countdown timer
+    const [timeLeft, setTimeLeft] = useState('');
+    const [isOverdue, setIsOverdue] = useState(false);
+
+    // MongoDB uses _id, while our old local storage used id. This seamlessly handles both.
+    const currentTaskId = task._id || task.id;
+    const isCompleted = task.status === 'Completed';
+
+    // ------------------------------------------------------------------------
+    // REAL-TIME COUNTDOWN TIMER LOGIC
+    // ------------------------------------------------------------------------
+    useEffect(() => {
+        if (isCompleted || !task.dueDate) return;
+
+        const calculateTime = () => {
+            // Assuming the due date is set for 23:59:59 of that specific day
+            const targetDate = new Date(`${task.dueDate}T23:59:59`);
+            const now = new Date();
+            const difference = targetDate - now;
+
+            if (difference < 0) {
+                setIsOverdue(true);
+                const absDiff = Math.abs(difference);
+                const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((absDiff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((absDiff / 1000 / 60) % 60);
+                const seconds = Math.floor((absDiff / 1000) % 60);
+                setTimeLeft(`Overdue by ${days}d ${hours}h ${minutes}m ${seconds}s`);
+            } else {
+                setIsOverdue(false);
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((difference / 1000 / 60) % 60);
+                const seconds = Math.floor((difference / 1000) % 60);
+                setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s left`);
+            }
+        };
+
+        // Run immediately, then every 1 second
+        calculateTime();
+        const timerInterval = setInterval(calculateTime, 1000);
+
+        return () => clearInterval(timerInterval);
+    }, [task.dueDate, isCompleted]);
 
     // Dynamic state updates for inline editing
     const handleChange = (e) => {
@@ -16,9 +61,11 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
     // Save modifications logic
     const handleSave = () => {
         if (!editData.title.trim() || !editData.dueDate) return;
-        onEdit(editData);
+
+        // Pass the correct MongoDB _id format for the backend
+        onEdit({ ...editData, _id: currentTaskId, id: currentTaskId });
         setIsEditing(false);
-        toast.success('Task updated!', { style: { background: '#1e293b', color: '#fff' } });
+        toast.success('Task updated successfully!', { style: { background: 'rgba(15,23,42,0.9)', color: '#fff' } });
     };
 
     // Custom Interactive Premium Delete Confirmation Toast
@@ -42,7 +89,7 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
                         Cancel
                     </button>
                     <button
-                        onClick={() => { onDelete(task.id); toast.dismiss(t.id); }}
+                        onClick={() => { onDelete(currentTaskId); toast.dismiss(t.id); }}
                         className="px-5 py-2.5 text-sm font-bold text-white bg-rose-600 rounded-xl hover:shadow-[0_0_15px_rgba(225,29,72,0.5)] transition-shadow"
                     >
                         Yes, Delete
@@ -66,10 +113,8 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
         Low: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-sm'
     };
 
-    const isCompleted = task.status === 'Completed';
-
-    // Reusable styles for edit mode inputs to match main form
-    const inputClasses = "w-full bg-slate-900/50 border border-slate-700/50 p-3.5 pl-11 rounded-xl outline-none focus:bg-slate-800/80 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-slate-100 placeholder-slate-500";
+    // Reusable styles tuned for the deep purple background
+    const inputClasses = "w-full bg-slate-900/40 backdrop-blur-md border border-indigo-500/20 p-3.5 pl-11 rounded-xl outline-none focus:bg-slate-800/60 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-slate-100 placeholder-slate-500 hover:border-indigo-500/40";
     const iconContainerClasses = "absolute left-3.5 text-slate-500 transition-colors duration-300 group-focus-within:text-indigo-400 pointer-events-none";
 
     // ------------------------------------------------------------------------
@@ -77,7 +122,7 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
     // ------------------------------------------------------------------------
     if (isEditing) {
         return (
-            <div className="glass-effect p-6 rounded-3xl mb-6 scale-[1.02] shadow-[0_0_40px_rgba(99,102,241,0.15)] border border-indigo-500/30 relative">
+            <div className="glass-effect p-6 rounded-3xl mb-6 scale-[1.02] shadow-[0_0_40px_rgba(99,102,241,0.15)] border border-indigo-500/30 relative z-20">
                 <h4 className="mb-4 text-xs font-extrabold tracking-widest text-indigo-400 uppercase">
                     Editing Task Mode
                 </h4>
@@ -98,12 +143,24 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
                         <textarea name="description" value={editData.description} onChange={handleChange} className={`${inputClasses} resize-none pl-11`} rows="2" placeholder="Task Description"></textarea>
                     </div>
 
-                    <div className="relative flex items-center group md:col-span-2">
+                    {/* Priority Dropdown */}
+                    <div className="relative flex items-center group">
                         <div className={iconContainerClasses}><FiFlag size={16} /></div>
                         <select name="priority" value={editData.priority} onChange={handleChange} className={`${inputClasses} cursor-pointer appearance-none pr-10`}>
                             <option value="High" className="bg-slate-900">High Priority</option>
                             <option value="Medium" className="bg-slate-900">Medium Priority</option>
                             <option value="Low" className="bg-slate-900">Low Priority</option>
+                        </select>
+                        <div className="absolute right-3.5 text-slate-400 pointer-events-none"><FiChevronDown size={18} /></div>
+                    </div>
+
+                    {/* Status Dropdown (Newly Added) */}
+                    <div className="relative flex items-center group">
+                        <div className={iconContainerClasses}><FiActivity size={16} /></div>
+                        <select name="status" value={editData.status} onChange={handleChange} className={`${inputClasses} cursor-pointer appearance-none pr-10`}>
+                            <option value="Pending" className="bg-slate-900">Pending</option>
+                            <option value="In Progress" className="bg-slate-900">In Progress</option>
+                            <option value="Completed" className="bg-slate-900">Completed</option>
                         </select>
                         <div className="absolute right-3.5 text-slate-400 pointer-events-none"><FiChevronDown size={18} /></div>
                     </div>
@@ -125,7 +182,7 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
     // DISPLAY MODE UI
     // ------------------------------------------------------------------------
     return (
-        <div className={`glass-effect p-6 rounded-3xl mb-5 transition-all duration-300 hover:border-slate-500/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group ${isCompleted ? 'opacity-60 grayscale-[20%]' : ''}`}>
+        <div className={`glass-effect p-6 rounded-3xl mb-5 transition-all duration-300 hover:border-indigo-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group ${isCompleted ? 'opacity-60 grayscale-[30%]' : 'hover:shadow-[0_0_20px_rgba(99,102,241,0.05)]'}`}>
 
             <div className="flex-1 w-full">
                 <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -142,9 +199,15 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 text-xs font-extrabold">
-                    <span className="flex items-center gap-1.5 bg-slate-900/60 text-slate-300 px-3.5 py-2 rounded-xl border border-slate-700/50 shadow-inner">
-                        <FiClock className="text-cyan-400" size={16} /> Due: {task.dueDate}
+                    {/* Real-time Deadline Badge */}
+                    <span className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border shadow-inner transition-colors ${isCompleted ? 'bg-slate-900/60 text-slate-500 border-slate-700/50' :
+                            isOverdue ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse' :
+                                'bg-slate-900/60 text-slate-300 border-slate-700/50'
+                        }`}>
+                        <FiClock className={isCompleted ? 'text-slate-500' : isOverdue ? 'text-rose-400' : 'text-cyan-400'} size={16} />
+                        {isCompleted ? `Due was: ${task.dueDate}` : timeLeft}
                     </span>
+
                     <span className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border shadow-inner ${isCompleted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : task.status === 'In Progress' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
                         Status: {task.status}
                     </span>
@@ -153,7 +216,7 @@ const TaskItem = ({ task, onDelete, onStatusUpdate, onEdit }) => {
 
             <div className="flex items-center justify-end w-full gap-3 pt-5 border-t border-slate-700/50 sm:w-auto sm:pt-0 sm:border-none">
                 <button
-                    onClick={() => onStatusUpdate(task.id, isCompleted ? 'Pending' : 'Completed')}
+                    onClick={() => onStatusUpdate(currentTaskId, isCompleted ? 'Pending' : 'Completed')}
                     className={`p-3.5 rounded-2xl flex items-center gap-2 transition-all shadow-sm ${isCompleted ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30'}`}
                     title={isCompleted ? "Mark Pending" : "Mark Complete"}
                 >

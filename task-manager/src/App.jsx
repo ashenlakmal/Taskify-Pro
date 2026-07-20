@@ -1,67 +1,160 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 import FilterBar from './components/FilterBar';
 
 function App() {
-  // State management for the tasks array and active filters
+  // ------------------------------------------------------------------------
+  // STATE MANAGEMENT
+  // ------------------------------------------------------------------------
   const [tasks, setTasks] = useState([]);
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterTime, setFilterTime] = useState('All');
 
-  // Initialize application state from local storage on first load
+  // API Base URL for the Local MongoDB Backend
+  const API_URL = 'http://localhost:5000/api/tasks';
+
+  // ------------------------------------------------------------------------
+  // DATABASE INTEGRATION (CRUD OPERATIONS)
+  // ------------------------------------------------------------------------
+
+  // READ: Fetch all tasks from the MongoDB database on initial load
   useEffect(() => {
-    const savedTasks = JSON.parse(localStorage.getItem('myTasks'));
-    if (savedTasks) {
-      setTasks(savedTasks);
-    }
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+        const data = await response.json();
+        setTasks(data);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        toast.error('Could not connect to the database!');
+      }
+    };
+    fetchTasks();
   }, []);
 
-  // Utility function to sync state changes with the browser's local storage
-  const updateStorage = (newTasks) => {
-    setTasks(newTasks);
-    localStorage.setItem('myTasks', JSON.stringify(newTasks));
+  // CREATE: Send a new task to the database
+  const handleAddTask = async (newTask) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask)
+      });
+      if (!response.ok) throw new Error('Failed to add task');
+      const savedTask = await response.json();
+
+      // Update local state immediately for a snappy UI
+      setTasks([savedTask, ...tasks]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      toast.error('Failed to save task to database.');
+    }
   };
 
-  // Handler to append a new task to the existing list
-  const handleAddTask = (newTask) => {
-    updateStorage([...tasks, newTask]);
+  // DELETE: Remove a task from the database
+  const handleDeleteTask = async (taskId) => {
+    try {
+      const response = await fetch(`${API_URL}/${taskId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete task');
+
+      // Update local state
+      setTasks(tasks.filter(task => (task._id || task.id) !== taskId));
+      toast.success('Task permanently deleted.', { style: { background: '#1e293b', color: '#fff' } });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task.');
+    }
   };
 
-  // Handler to completely remove a task by its unique ID
-  const handleDeleteTask = (taskId) => {
-    const filteredTasks = tasks.filter(task => task.id !== taskId);
-    updateStorage(filteredTasks);
+  // UPDATE: Toggle task status in the database
+  const handleStatusUpdate = async (taskId, newStatus) => {
+    try {
+      const response = await fetch(`${API_URL}/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!response.ok) throw new Error('Failed to update status');
+      const updatedTaskData = await response.json();
+
+      // Update local state
+      setTasks(tasks.map(task =>
+        (task._id || task.id) === taskId ? updatedTaskData : task
+      ));
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status.');
+    }
   };
 
-  // Handler to toggle or update the completion status of a specific task
-  const handleStatusUpdate = (taskId, newStatus) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, status: newStatus } : task
-    );
-    updateStorage(updatedTasks);
+  // UPDATE: Save comprehensive edits to the database
+  const handleEditTask = async (updatedTask) => {
+    try {
+      const taskId = updatedTask._id || updatedTask.id;
+      const response = await fetch(`${API_URL}/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTask)
+      });
+      if (!response.ok) throw new Error('Failed to edit task');
+      const savedTaskData = await response.json();
+
+      // Update local state
+      setTasks(tasks.map(task =>
+        (task._id || task.id) === taskId ? savedTaskData : task
+      ));
+    } catch (error) {
+      console.error('Error editing task:', error);
+      toast.error('Failed to update task.');
+    }
   };
 
-  // Handler to save modifications made to an existing task during edit mode
-  const handleEditTask = (updatedTask) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === updatedTask.id ? updatedTask : task
-    );
-    updateStorage(updatedTasks);
-  };
-
-  // Compute the derived state for filtered tasks dynamically
+  // ------------------------------------------------------------------------
+  // ADVANCED FILTERING LOGIC
+  // ------------------------------------------------------------------------
   const filteredTasks = tasks.filter(task => {
+    // 1. Basic Status & Priority Matches
     const matchStatus = filterStatus === 'All' || task.status === filterStatus;
     const matchPriority = filterPriority === 'All' || task.priority === filterPriority;
-    return matchStatus && matchPriority;
+
+    // 2. Search Query Match (Checks both Title and Description)
+    const searchLower = searchQuery.toLowerCase();
+    const matchSearch = task.title.toLowerCase().includes(searchLower) ||
+      (task.description && task.description.toLowerCase().includes(searchLower));
+
+    // 3. Time-based Match (Overdue vs Due Soon)
+    let matchTime = true;
+    if (filterTime !== 'All') {
+      if (task.status === 'Completed') {
+        matchTime = false; // Completed tasks aren't overdue or due soon
+      } else {
+        const targetDate = new Date(`${task.dueDate}T23:59:59`);
+        const now = new Date();
+        const diffHours = (targetDate - now) / (1000 * 60 * 60);
+
+        if (filterTime === 'Overdue') {
+          matchTime = diffHours < 0;
+        } else if (filterTime === 'Due Soon') {
+          matchTime = diffHours >= 0 && diffHours <= 48; // Due within next 48 hours
+        }
+      }
+    }
+
+    return matchStatus && matchPriority && matchSearch && matchTime;
   });
 
+  // ------------------------------------------------------------------------
+  // APPLICATION RENDERING
+  // ------------------------------------------------------------------------
   return (
     <div className="relative min-h-screen p-4 overflow-hidden sm:p-6 lg:p-10 selection:bg-indigo-500/30 selection:text-indigo-200">
-
-      {/* Note: Fixed ambient glow divs removed here to let the pure CSS animated gradient shine completely */}
 
       {/* Global Premium Toast Notification Configuration */}
       <Toaster
@@ -100,12 +193,18 @@ function App() {
 
         {/* Right Column: Filters and Task List View */}
         <div className="flex flex-col w-full min-h-screen pb-20 xl:w-7/12">
+
+          {/* Filter Bar with new Props passed in */}
           <div className="z-20 mb-2 xl:sticky xl:top-10">
             <FilterBar
               filterStatus={filterStatus}
               setFilterStatus={setFilterStatus}
               filterPriority={filterPriority}
               setFilterPriority={setFilterPriority}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filterTime={filterTime}
+              setFilterTime={setFilterTime}
             />
           </div>
 

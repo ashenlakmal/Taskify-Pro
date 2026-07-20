@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
-// Imported beautiful icons to replace basic emojis and default arrows
+// Imported beautiful icons
 import { FiPlus, FiAlertCircle, FiCheckCircle, FiChevronDown, FiFlag, FiType, FiCalendar, FiAlignLeft } from 'react-icons/fi';
 
 const TaskForm = ({ onSave }) => {
-    // Initializing state for the task object
+    // Initializing state for the task object exactly as requested
     const [task, setTask] = useState({
         title: '',
         description: '',
@@ -26,7 +25,7 @@ const TaskForm = ({ onSave }) => {
         // Strict Validation: Ensure title is provided
         if (!task.title.trim()) {
             toast.error('Task title cannot be empty!', {
-                icon: <FiAlertCircle className="text-red-400" size={24} />
+                icon: <FiAlertCircle className="text-rose-400" size={24} />
             });
             return;
         }
@@ -39,8 +38,8 @@ const TaskForm = ({ onSave }) => {
             return;
         }
 
-        // Save the valid task and generate a unique ID
-        onSave({ ...task, id: uuidv4() });
+        // Send the task to App.jsx (MongoDB will automatically generate the _id for this)
+        onSave(task);
 
         // Show premium success notification
         toast.success('Task successfully added!', {
@@ -57,14 +56,13 @@ const TaskForm = ({ onSave }) => {
         });
     };
 
-    // Reusable styling classes for ultra-premium dark inputs
-    // Added 'pl-12' to make room for the custom icons inside the inputs
-    const inputClasses = "w-full bg-slate-900/40 border border-slate-700/50 p-4 pl-12 rounded-2xl outline-none focus:bg-slate-800/80 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300 shadow-inner font-medium text-slate-100 placeholder-slate-500 hover:border-slate-600/50";
-    const labelClasses = "text-xs font-bold tracking-widest text-slate-400 uppercase transition-colors duration-300 group-focus-within:text-indigo-400";
+    // Reusable styling classes perfectly tuned for the Deep Purple Breathing Background
+    const inputClasses = "w-full bg-slate-900/30 backdrop-blur-md border border-indigo-500/20 p-4 pl-12 rounded-2xl outline-none focus:bg-slate-800/50 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300 shadow-inner font-medium text-slate-100 placeholder-slate-500 hover:border-indigo-500/40";
+    const labelClasses = "text-xs font-bold tracking-widest text-slate-400 uppercase transition-colors duration-300 group-focus-within:text-indigo-300";
     const iconContainerClasses = "absolute left-4 text-slate-500 transition-colors duration-300 group-focus-within:text-indigo-400 pointer-events-none";
 
     return (
-        <form onSubmit={handleSubmit} className="p-8 mb-10 transition-all duration-500 glass-effect rounded-3xl hover:shadow-[0_0_40px_rgba(99,102,241,0.1)] border border-white/5 relative overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-8 mb-10 transition-all duration-500 glass-effect rounded-3xl hover:shadow-[0_0_40px_rgba(99,102,241,0.15)] border border-white/5 relative overflow-hidden">
 
             {/* Subtle background glow effect for the form container */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-10 pointer-events-none"></div>
@@ -162,7 +160,7 @@ const TaskForm = ({ onSave }) => {
             <div className="relative z-10 flex justify-end mt-10">
                 <button
                     type="submit"
-                    className="bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-10 py-4 rounded-2xl font-extrabold tracking-wide flex items-center gap-3 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
+                    className="bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-10 py-4 rounded-2xl font-extrabold tracking-wide flex items-center gap-3 hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
                 >
                     <FiPlus size={22} className="stroke-[3]" /> Add New Task
                 </button>
