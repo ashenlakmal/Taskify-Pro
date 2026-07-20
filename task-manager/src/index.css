@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* Global Reset and Body Styling */
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    /* The Magic: Seamless, deeply blended soft purple & indigo gradient */
+    background: linear-gradient(-45deg,
+            #090914,
+            /* Deep dark slate */
+            #23154d,
+            /* Rich visible purple */
+            #111636,
+            /* Soft midnight indigo */
+            #311652
+            /* Deep violet */
+        );
+    background-size: 400% 400%;
+    /* Made larger so the movement is completely seamless */
+
+    /* Sped up to 15s so the flowing effect is beautifully visible without being distracting */
+    animation: subtleBreathing 15s ease-in-out infinite alternate;
+
+    /* Applying the premium font family globally */
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    color: #f8fafc;
+
+    /* Smooth scrolling for the entire application */
+    scroll-behavior: smooth;
+}
+
+/* Keyframes for the ultra-smooth flowing gradient movement */
+@keyframes subtleBreathing {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Ultra-Premium Soft Glassmorphism Effect */
+.glass-effect {
+    background: rgba(15, 20, 35, 0.4);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.03), 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+}
+
+/* Removing default basic arrows from select dropdowns globally */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Custom Premium Scrollbar Design */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+}
+
+/* Smooth focus transitions for all interactive elements */
+input,
+textarea,
+select,
+button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
