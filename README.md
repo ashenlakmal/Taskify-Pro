@@ -1,4 +1,4 @@
-# Taskify Pro — Task Management System
+# Taskify Pro (Task Management System)
 
 **Taskify Pro** is an enterprise-grade, highly responsive Full-Stack Task Management application designed to elevate productivity with unparalleled elegance. It features real-time countdown timers, advanced multi-criteria filtering, full CRUD capabilities with MongoDB, and an ultra-modern dark glassmorphism user interface.
 
